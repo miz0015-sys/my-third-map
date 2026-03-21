@@ -1,4 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>My Map Game</title>
+  <style>
+    body { margin: 0; overflow: hidden; }
+    canvas { background: #111; display: block; }
+  </style>
+</head>
+<body>
+
+<canvas id="game"></canvas>
+
 <script>
+// 👇 ALL your game code goes here
+
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
@@ -7,15 +22,16 @@ canvas.height = window.innerHeight;
 
 // Player
 const player = {
-  x: 400,
-  y: 300,
+  x: 500,
+  y: 500,
   radius: 20,
-  speed: 8
+  speed: 4
 };
 
-// Obstacles (walls)
+// Obstacles
 const obstacles = [
-  { x: 300, y: 100, w: 200, h: 500 }
+  { x: 300, y: 300, w: 200, h: 50 },
+  { x: 600, y: 500, w: 150, h: 150 }
 ];
 
 // Input
@@ -23,7 +39,7 @@ const keys = {};
 window.addEventListener("keydown", e => keys[e.key] = true);
 window.addEventListener("keyup", e => keys[e.key] = false);
 
-// Collision check
+// ✅ COLLISION FUNCTIONS
 function isColliding(circle, rect) {
   const closestX = Math.max(rect.x, Math.min(circle.x, rect.x + rect.w));
   const closestY = Math.max(rect.y, Math.min(circle.y, rect.y + rect.h));
@@ -34,32 +50,30 @@ function isColliding(circle, rect) {
   return (dx * dx + dy * dy) < (circle.radius * circle.radius);
 }
 
-// ✅ SOLID WALL MOVEMENT
+function canMove(newX, newY) {
+  for (let o of obstacles) {
+    const test = { x: newX, y: newY, radius: player.radius };
+    if (isColliding(test, o)) return false;
+  }
+  return true;
+}
+
+// Movement
 function update() {
   let dx = 0;
   let dy = 0;
 
-  if (keys["ArrowLeft"]) dx -= player.speed;
-  if (keys["ArrowRight"]) dx += player.speed;
   if (keys["ArrowUp"]) dy -= player.speed;
   if (keys["ArrowDown"]) dy += player.speed;
+  if (keys["ArrowLeft"]) dx -= player.speed;
+  if (keys["ArrowRight"]) dx += player.speed;
 
-  // Move X
-  player.x += dx;
-  for (let o of obstacles) {
-    if (isColliding(player, o)) {
-      player.x -= dx; // undo if hit wall
-      break;
-    }
-  }
+  let newX = player.x + dx;
+  let newY = player.y + dy;
 
-  // Move Y
-  player.y += dy;
-  for (let o of obstacles) {
-    if (isColliding(player, o)) {
-      player.y -= dy; // undo if hit wall
-      break;
-    }
+  if (canMove(newX, newY)) {
+    player.x = newX;
+    player.y = newY;
   }
 }
 
@@ -67,13 +81,13 @@ function update() {
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // Draw obstacles
+  // Obstacles
   ctx.fillStyle = "red";
   obstacles.forEach(o => {
     ctx.fillRect(o.x, o.y, o.w, o.h);
   });
 
-  // Draw player
+  // Player
   ctx.beginPath();
   ctx.arc(player.x, player.y, player.radius, 0, Math.PI * 2);
   ctx.fillStyle = "cyan";
@@ -88,4 +102,7 @@ function loop() {
 }
 
 loop();
+
 </script>
+</body>
+</html>
